@@ -348,3 +348,16 @@ Utilize este espaço para comentar:
 - Decisões técnicas importantes  
 - Limitações do modelo  
 - Aprendizados durante o desafio
+
+
+## 🆘 Suporte
+
+Em caso de dúvidas:
+
+- Consulte o material dos cursos EAD
+- Leia atentamente este README
+- Analise os logs das GitHub Actions
+- Utilize os canais oficiais para contato com os instrutores
+
+Boa sorte no processo seletivo.
+****
