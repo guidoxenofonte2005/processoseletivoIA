@@ -29,7 +29,7 @@ model.add(layers.Dense(28, activation="relu"))
 model.add(layers.Dense(16, activation="softmax"))
 
 # otimizador
-optimizer = Adam(learning_rate=0.01)
+optimizer = Adam(learning_rate=0.001)
 
 # compilação do modelo
 model.compile(
@@ -40,7 +40,7 @@ model.compile(
 model.fit(x_train, y_train, epochs=5)
 score = model.evaluate(x_test, y_test)
 
-print(f"Accuracy final: {score[1]}")
+print(f"Accuracy final: aprox. {(float(score[1])*100):.2f}%")
 
 # salvamento final do modelo
 model.save("model.h5")
