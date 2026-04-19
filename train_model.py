@@ -10,37 +10,48 @@ x_train, x_value, y_train, y_value = train_test_split(x_train, y_train, test_siz
 # ajuste unidimensional das imagens de teste
 x_train = x_train.reshape(x_train.shape[0], 28, 28, 1)
 x_test = x_test.reshape(x_test.shape[0], 28, 28, 1)
+x_value = x_value.reshape(x_value.shape[0], 28, 28, 1)
 
 # normalização dos dados
 x_train = x_train.astype("float32") / 255
 x_test = x_test.astype("float32") / 255
+x_value = x_value.astype("float32") / 255
 
 # criação do modelo
 model = models.Sequential()
 
 # definição das layers convolucionais
-model.add(layers.Conv2D(32, (3, 3), activation="relu"))
+model.add(layers.Conv2D(16, (3, 3), activation="relu"))
 model.add(layers.MaxPooling2D())
-model.add(layers.Conv2D(64, (3, 3), activation="relu"))
+
+model.add(layers.Dropout(0.25))
+
+model.add(layers.Conv2D(32, (3, 3), activation="relu"))
 
 # layers finais de saída
 model.add(layers.Flatten())
-model.add(layers.Dense(28, activation="relu"))
-model.add(layers.Dense(16, activation="softmax"))
+
+model.add(layers.Dropout(0.5))
+
+model.add(layers.Dense(32, activation="relu"))
+model.add(layers.Dense(10, activation="softmax"))
 
 # otimizador
 optimizer = Adam(learning_rate=0.001)
 
 # compilação do modelo
 model.compile(
-    optimizer=optimizer, loss="sparse_categorical_crossentropy", metrics=["accuracy"]
+    optimizer=optimizer,
+    loss="sparse_categorical_crossentropy",
+    metrics=["accuracy"],
 )
 
 # treinamento e teste de accuracy
-model.fit(x_train, y_train, epochs=5)
-score = model.evaluate(x_test, y_test)
+model.fit(x_train, y_train, epochs=5, validation_data=(x_value, y_value))
 
+score = model.evaluate(x_test, y_test)
 print(f"Accuracy final: aprox. {(float(score[1])*100):.2f}%")
 
 # salvamento final do modelo
 model.save("model.h5")
+model.save("model.keras")
