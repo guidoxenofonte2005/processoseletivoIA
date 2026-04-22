@@ -299,55 +299,78 @@ Copie o link do seu repositório e envie conforme orientações do processo sele
 ---
 
 ## 📝 Relatório do Candidato
-
-O arquivo (`README.md`) deve ser utilizado como **relatório final do desafio**.
-
-Preencha todas as seções de forma clara e objetiva.
-
-> 💡 Dica: não é necessário um relatório extenso.  
-> O mais importante é demonstrar **clareza nas decisões técnicas**.
-
-
-
-**Exemplo:**
-
-👤 Identificação: **Nome Completo:**
+👤 Identificação: **Guido Xenofonte de Almeida Gonçalves**
 
 
 ### 1️⃣ Resumo da Arquitetura do Modelo
 
-Descreva, em palavras, a arquitetura da **CNN** implementada no arquivo
-`train_model.py`.
+A CNN implementada é composta pelas seguintes camadas, nesta ordem:
 
+- **Input:** recebe imagens de 28x28 pixels em escala de cinza (1 canal)
+- **Conv2D (16 filtros, 3x3, ReLU):** extrai features básicas como bordas e curvas
+- **MaxPooling2D:** reduz a dimensionalidade espacial, diminuindo custo computacional
+- **Dropout (0.25):** desativa 25% dos neurônios aleatoriamente para evitar overfitting
+- **Conv2D (32 filtros, 3x3, ReLU):** extrai features mais complexas e abstratas
+- **Flatten:** converte o tensor 2D em vetor 1D para as camadas densas
+- **Dropout (0.5):** desativa 50% dos neurônios antes da classificação final
+- **Dense (32, ReLU):** camada densa intermediária
+- **Dense (10, Softmax):** camada de saída com 10 neurônios, um para cada dígito (0-9)
 
+O modelo foi compilado com o otimizador **Adam (lr=0.001)** e função de perda **sparse_categorical_crossentropy**. Foi utilizado **EarlyStopping** monitorando `val_loss` com `patience=1` e `min_delta=0.01` para interromper o treinamento assim que a melhora se tornasse insignificante, evitando overfitting e epochs desnecessários.
+
+---
 
 ### 2️⃣ Bibliotecas Utilizadas
 
-Liste as principais bibliotecas utilizadas no projeto, preferencialmente
-com suas versões.
+| Biblioteca | Uso |
+|---|---|
+| `tensorflow` | Backend e conversão TFLite |
+| `keras` | Construção e treinamento do modelo |
+| `scikit-learn` | Divisão dos dados, métricas de avaliação |
+| `numpy` | Manipulação de arrays e cálculo de métricas |
+| `seaborn` | Visualização da matriz de confusão |
+| `matplotlib` | Exibição de gráficos |
+| `ai_edge_litert` | Inferência com o modelo TFLite |
 
-
+---
 
 ### 3️⃣ Técnica de Otimização do Modelo
 
-Explique qual técnica foi utilizada para otimizar o modelo no arquivo
-`optimize_model.py`.
+Foi aplicada **quantização inteira (INT8) com dataset representativo**, que consiste
+em converter os pesos e ativações do modelo de float32 para inteiros de 8 bits.
 
+O processo envolveu:
+- **Representative dataset:** 100 amostras reais do dataset de treino fornecidas ao converter para calibrar a escala de quantização com base na distribuição real dos dados
+- **INT8 completo:** entradas e saídas também quantizadas via `inference_input_type` e `inference_output_type`
+- **Fallback ops:** operações sem suporte INT8 nativo mantidas em float32 automaticamente, evitando erros de conversão
 
+Essa abordagem resulta em modelo significativamente menor e mais rápido, ideal para deployment em dispositivos Edge com recursos limitados.
+
+---
 
 ### 4️⃣ Resultados Obtidos
 
-Informe o principal resultado obtido após o treinamento do modelo.
+| Métrica | Keras (.h5) | TFLite (.tflite) | Diferença |
+|---|---|---|---|
+| Accuracy | ~98.45% | ~98.43% | ~0.02% |
+| Tamanho | 1.5 MB | ~130 KB | ~91.4% menor |
+| Latência média | ~0.101ms | ~0.067ms | ~35% mais rápido |
 
+*Esses são valores aproximados, os resultados exatos variam a cada execução devido ao EarlyStopping e à inicialização aleatória dos pesos.*
 
+---
 
-### 5️⃣ Comentários Adicionais (Opcional)
+### 5️⃣ Comentários Adicionais
 
-Utilize este espaço para comentar:
-- Dificuldades encontradas  
-- Decisões técnicas importantes  
-- Limitações do modelo  
-- Aprendizados durante o desafio
+**Decisões técnicas importantes:**
+- O uso de **dois Dropouts** (0.25 e 0.5) foi intencional: o primeiro após o MaxPooling reduz overfitting nas features convolucionais, e o segundo antes da camada densa final é mais agressivo por ser onde o overfitting tende a ser mais crítico
+- O **EarlyStopping com `restore_best_weights=True`** garante que o modelo salvo sempre corresponde ao melhor epoch, não necessariamente ao último
+- A arquitetura foi mantida **propositalmente enxuta** (16 e 32 filtros em vez de 32 e 64) para priorizar eficiência em Edge AI sem sacrifício significativo de acurácia
+- O modelo foi salvo em dois formatos (.h5 e .keras) para maior compatibilidade com diferentes versões do TensorFlow/Keras.
+
+**Trade-offs identificados:**
+- A quantização INT8 reduz ~91.4% do tamanho e ~34.1% da latência com perda de acurácia de apenas ~0.02%, demonstrando excelente custo-benefício para dispositivos com restrição de memória e processamento
+- Aumentar o número de filtros melhoraria a acurácia, mas comprometeria o tamanho total do arquivo
 
 
 ## 🆘 Suporte
